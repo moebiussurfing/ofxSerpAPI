@@ -15,15 +15,35 @@ void ofApp::setup() {
 }
 
 void ofApp::update() {
+
+	// title to debuh that threading is working
+	const int d = 120;
+	if (ofGetFrameNum() % d < (d / 0.5)) {
+		ofSetWindowTitle("ofxSerpAPI");
+	}
+	else ofSetWindowTitle("         ");
+
+	//TODO: force settings
 	if (ofGetFrameNum() == 2) {
-		ui.notifier.setDuration(500);
-		//ui.notifier.setMini;
+		//ui.notifier.setDuration(1000);
+		ui.notifier.setMini();
+	}
+
+	//TODO: make callback
+	// Curl
+	if (searchAPI.isCurlDone()) {
+		jResponse = searchAPI.jResponse;
+		sResponse = searchAPI.sResponse;
+
+		string s = "onSearchCurl Result: " + sResponse;
+		ofLogNotice() << s;
+		ui.AddToLog(s, OF_LOG_WARNING);
 	}
 }
 
 void ofApp::draw() {
-	//sResult = duckDuckGo.sResult;
-	//ofDrawBitmapString(sResult, 20, 20);
+	//sResponse = searchAPI.sResponse;
+	//ofDrawBitmapString(sResponse, 20, 20);
 
 	drawUI();
 }
@@ -39,9 +59,10 @@ void ofApp::drawUI() {
 	IMGUI_SUGAR__WINDOWS_CONSTRAINTS_DEFAULT;
 	if (ui.BeginWindow("ofApp", ImGuiWindowFlags_None))
 	{
+		ui.AddMinimizerToggle();
 		ui.AddLogToggle();
 		ui.AddNotifierToggle();
-		ui.AddMinimizerToggle();
+		ui.AddAutoResizeToggle();
 		ui.AddSpacingBigSeparated();
 
 		ui.AddLabelBig("QUERY");
@@ -64,9 +85,11 @@ void ofApp::drawUI() {
 		}
 		ui.SameLine();
 		if (ImGui::Button("doCurl")) {
-			duckDuckGo.doCurl(sQuery.get(), sEngine.get());
+			searchAPI.doCurl(sQuery.get(), sEngine.get());
 		}
-		if (!jResponse.empty()) {
+
+		if (!jResponse.empty())
+		{
 			ui.AddSpacing();
 			ui.AddLabelBig("FILTER");
 			if (ImGui::Button("doParse")) {
@@ -76,9 +99,46 @@ void ofApp::drawUI() {
 
 		ui.AddSpacingBigSeparated();
 
-		ui.AddLabel(sResult);
+		ui.AddLabel(sResponse);
 
 		ui.EndWindow();
+	}
+
+	if (videos.size() > 0) {
+		IMGUI_SUGAR__WINDOWS_CONSTRAINTS_DEFAULT;
+		if (ui.BeginWindow("VIDEOS")) {
+
+			for (size_t i = 0; i < videos.size(); i++)
+			{
+				string s = videos[i].name;
+
+				float w, h;
+				w = ui.getWidgetsWidth();
+				h = ui.getWidgetsHeightUnit() * 4;
+				ImVec2 sz{ w, h };
+
+				//if (ui.AddButton(s.c_str(), sz))
+				//{
+				//	ofLaunchBrowser(videos[i].url);
+				//}
+
+				//////ofTexture tex = videos[i].img.getTexture();
+				////if (ImGui::ImageButton(videos[i].imgID, ImVec2{ w, h })) 
+				//ImTextureID texID = ofxImGuiSurfing::GetImTextureID2(videos[i].imgID);
+				//if (ImGui::ImageButton(texID, ImVec2(w, h)))
+				//{
+				//	ofLaunchBrowser(videos[i].url);
+				//}
+
+				if (ImGui::ImageButton(ofxImGuiSurfing::GetImTextureID2(videos[i].texID), sz))
+				{
+					ofLaunchBrowser(videos[i].url);
+				}
+				ui.AddTooltip(s);
+			}
+
+			ui.EndWindow();
+		}
 	}
 
 	ui.End();
@@ -86,22 +146,22 @@ void ofApp::drawUI() {
 
 void ofApp::doClear()
 {
-	sResult = "";
+	sResponse = "";
 	AddToLog(__FUNCTION__, OF_LOG_WARNING);
-
+	ui.ClearLog();
 }
 
 // Send query
 void ofApp::doSearchHTTP(const std::string& query, const std::string& engine)
 {
-	duckDuckGo.search(query, engine, [&](const ofJson& result, ofxSerpAPI::ErrorCode errorCode) {
+	searchAPI.search(query, engine, [&](const ofJson& result, ofxSerpAPI::ErrorCode errorCode) {
 
 		onSearchHTTPResult(result, errorCode);
-		sResult = result.dump(4);
+		sResponse = result.dump(4);
 
-		string ss = "doSearchHTTP Result: " + sResult;
+		string ss = "doSearchHTTP Result: " + sResponse;
 		ofLogNotice() << ss;
-		AddToLog(ss, OF_LOG_WARNING);
+		ui.AddToLog(ss, OF_LOG_WARNING);
 		});
 }
 
@@ -110,17 +170,17 @@ void ofApp::onSearchHTTPResult(const ofJson& result, ofxSerpAPI::ErrorCode error
 	if (errorCode == ofxSerpAPI::Success) {
 		this->jResponse = result;
 
-		sResult = result.dump(4);
-		string s = "onSearchHTTPResult Result: " + sResult;
+		sResponse = result.dump(4);
+		string s = "onSearchHTTPResult Result: " + sResponse;
 		ofLogNotice() << s;
-		AddToLog(s, OF_LOG_WARNING);
+		ui.AddToLog(s, OF_LOG_WARNING);
 
 #ifdef USE_EDITOR
-		e.setText(sResult);
+		e.setText(sResponse);
 #endif
 	}
 	else {
-		string s = "Error: " + duckDuckGo.getErrorMessage(errorCode);
+		string s = "Error: " + searchAPI.getErrorMessage(errorCode);
 		ofLogError() << s;
 		AddToLog(s, OF_LOG_ERROR);
 	}
@@ -136,20 +196,45 @@ void ofApp::doParse() {
 	}
 	else {
 		int i = 0;
+		videos.clear();
+
 		ofJson videoResults = data["video_results"];
-		for (const auto& video : videoResults) {
+		for (const auto& video : videoResults)
+		{
 			std::string videoTitle = video["title"];
 			std::string videoLink = video["link"];
 			std::string channelName = video["channel"]["name"];
 			std::string channelLink = video["channel"]["link"];
+			std::string thumbnailLink = video["thumbnail"]["static"];
 
 			stringstream ss;
-			//ss << endl;
 			ss << "VIDEO #" << i++ << endl;
 			ss << "Title: \t" << videoTitle << std::endl;
 			ss << "Link:  \t" << videoLink << std::endl;
+			ss << "Thumb:  \t" << thumbnailLink << std::endl;
 			//ss << "Channel Name: " << channelName << std::endl;
 			//ss << "Channel Link: " << channelLink << std::endl;
+			//ss << endl;
+
+			//--
+
+			dataVideo v;
+			v.name = videoTitle;
+			v.url = videoLink;
+			v.thumb = thumbnailLink;
+
+			ofHttpResponse r = ofLoadURL(thumbnailLink);
+			if (r.status == 200) {
+				v.img.loadImage(r.data);
+				v.imgID = ui.getGuiPtr()->loadImage(v.img);
+				v.texID = ui.getGuiPtr()->loadTexture(v.tex, v.thumb);
+
+			}
+
+			videos.emplace_back(v);
+			//videos.push_back(v);
+
+			//--
 
 			AddToLog(ss.str());
 		}

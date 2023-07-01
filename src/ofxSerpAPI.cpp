@@ -1,4 +1,5 @@
 #include "ofxSerpAPI.h"
+
 ofxSerpAPI::ofxSerpAPI() {
 	params.add(sKey);
 
@@ -9,9 +10,11 @@ ofxSerpAPI::ofxSerpAPI() {
 	ofLogWarning() << "Loaded: " << path;
 }
 
-ofxSerpAPI::~ofxSerpAPI() {
+ofxSerpAPI::~ofxSerpAPI()
+{
 	string path = params.getName() + ".json";
-	if (!ofDirectory::doesDirectoryExist(ofFilePath::getEnclosingDirectory(path))) {
+	if (!ofDirectory::doesDirectoryExist(ofFilePath::getEnclosingDirectory(path)))
+	{
 		ofFilePath::createEnclosingDirectory(path);
 		ofLogWarning() << "Created enclosing folder for: " << path;
 	}
@@ -32,30 +35,36 @@ void ofxSerpAPI::search(const std::string& query, const std::string& engine, std
 
 	//string sEngine = "youtube"; // " + sEngine + "
 	//string sQuery = "autechre"; // " + sQuery + "
-
-	string sEngine = engine;
+	sEngine = engine;
 	string sQuery = query;
 
-	string sUrl = "https://serpapi.com/search.json?engine=" + sEngine + "&search_query=" + sQuery + "&api_key=" + sKey.get();
+	string sUrl = "https://serpapi.com/search.json?engine=" + sEngine.get() + "&search_query=" + sQuery + "&api_key=" + sKey.get();
 
 	ofAddListener(ofURLResponseEvent(), this, &ofxSerpAPI::onResponse);
 	ofLoadURLAsync(sUrl, "search_request");
 }
 
-void ofxSerpAPI::onResponse(ofHttpResponse& response) {
+void ofxSerpAPI::onResponse(ofHttpResponse& response)
+{
 	if (response.request.name != "search_request") return;
 	ofRemoveListener(ofURLResponseEvent(), this, &ofxSerpAPI::onResponse);
 
 	ErrorCode errorCode = parseErrorResponse(response);
-	if (errorCode == Success) {
+	if (errorCode == Success)
+	{
 		ofJson jsonData = ofJson::parse(response.data.getText());
-		sResult = jsonData.dump(4);
-		ofLogNotice("ofxSerpAPI") << "Response JSON: " << sResult;
-		if (searchCallback) {
+
+		jResponse = jsonData;
+		sResponse = jsonData.dump(4);
+
+		ofLogNotice("ofxSerpAPI") << "Response JSON: " << sResponse;
+		if (searchCallback)
+		{
 			searchCallback(jsonData, errorCode);
 		}
 	}
-	else {
+	else
+	{
 		ofLogError("ofxSerpAPI") << getErrorMessage(errorCode);
 	}
 }
@@ -65,7 +74,8 @@ string ofxSerpAPI::uriEncode(const string& str) {
 	escaped.fill('0');
 	escaped << std::hex;
 
-	for (auto c : str) {
+	for (auto c : str)
+	{
 		if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
 			escaped << c;
 		}
@@ -128,21 +138,62 @@ string ofxSerpAPI::getErrorMessage(ErrorCode errorCode) {
 
 //----
 
-//TODOl USE CURL
+//TODO: 
+// Make it using CURL..
+// could use ofxHTTP ?
 
+#if 1
+
+void ofxSerpAPI::doCurl(const std::string& query, const std::string& engine) {
+	ofLogNotice("ofxSerpAPI") << "doCurl: Query:" << query << " Engine:" << engine;
+
+	sEngine = engine;
+
+	/*
+	curl --get https://serpapi.com/search \
+	 -d api_key="533fe6a1d8582a75eeb08f5126291b0807b8e9d7610e55de33f01e26310abdd5" \
+	 -d engine="youtube" \
+	 -d search_query="autechre"
+	*/
+
+	string s0 = "https://serpapi.com/search";
+
+	string s2 = "curl --get " + s0 /*+ string(" \\")*/;
+	string s3 = " -d api_key=\"" + sKey.get() + "\"";
+	string s4 = " -d engine=\"" + sEngine.get() + "\"";
+	string s5 = " -d search_query=\"" + query + "\"";
+
+	string cmd = s2 + s3 + s4 + s5;
+	ofLogNotice("ofxSerpAPI") << cmd;
+
+	string reply = ofSystem(cmd);
+	ofJson j = ofJson::parse(reply);
+
+	if (!j.empty()) {
+		
+		jResponse = j;
+		sResponse = j.dump(4);
+
+		ofLogNotice("ofxSerpAPI") << "Response: " << sResponse;
+		bDoneCurl = true;
+	}
+}
+
+#else
+
+//#include <curl/curl.h>
 size_t ofxSerpAPI::WriteCallback(char* contents, size_t size, size_t nmemb, std::string* response) {
 	size_t totalSize = size * nmemb;
 	response->append(contents, totalSize);
 
 	ofLogNotice("ofxSerpAPI") << "WriteCallback: " << response;
 
-	//sResult = response;
+	//sResponse = response;
 
 	return totalSize;
 }
 
 void ofxSerpAPI::doCurl(const std::string& query, const std::string& engine) {
-	ofLogNotice() << "doCurl: Query: " << query << " Engine:" << engine;
 
 	// Initialize cURL
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -150,13 +201,6 @@ void ofxSerpAPI::doCurl(const std::string& query, const std::string& engine) {
 	// Create a cURL handle
 	CURL* curl = curl_easy_init();
 
-
-	/*
-	string sCurl = "curl --get https ://serpapi.com/search \";
-		sCurl += " - d engine = "youtube" \"
-		sCurl += "-d search_query="star + wars" \"
-		sCurl += "-d api_key="533fe6a1d8582a75eeb08f5126291b0807b8e9d7610e55de33f01e26310abdd5"
-	*/
 
 	//curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);//disable
 
@@ -179,7 +223,7 @@ void ofxSerpAPI::doCurl(const std::string& query, const std::string& engine) {
 	}
 	*/
 
-	// ssl
+	// ssl fail
 	curl_easy_setopt(curl, CURLOPT_CAINFO, ofToDataPath("cacert.pem"));
 	//curl_easy_setopt(curl, CURLOPT_CAINFO, ofToDataPath("ssl/cacert.pem"));
 	//curl_easy_setopt(curl, CURLOPT_CAINFO, "cacert.pem");
@@ -223,5 +267,8 @@ void ofxSerpAPI::doCurl(const std::string& query, const std::string& engine) {
 	// Cleanup cURL global resources
 	curl_global_cleanup();
 }
+
+#endif
+
 
 

@@ -30,9 +30,9 @@ public:
 
 	void onSearchHTTPResult(const ofJson& result, ofxSerpAPI::ErrorCode errorCode);
 
-	ofxSerpAPI duckDuckGo;
+	ofxSerpAPI searchAPI;
 	ofJson jResponse;
-	string sResult;
+	string sResponse;
 	void doSearchHTTP(const std::string& query, const std::string& engine);
 
 	ofxSurfingGui ui;
@@ -45,4 +45,15 @@ public:
 	ofParameter<string> sQuery = { "Query","autechre" };
 
 	void AddToLog(string s, ofLogLevel l = OF_LOG_NOTICE);
+
+	struct dataVideo {
+		string name;
+		string url;
+		string thumb;
+		ofImage img;
+		ofTexture tex;
+		GLuint imgID;
+		GLuint texID;
+	};
+	vector<dataVideo> videos;
 };

@@ -7,8 +7,8 @@ This addon is hardly based on https://github.com/tettou771/ofxDuckDuckGo
 
 */
 
-
-#include <curl/curl.h>
+//TODO:
+//#include <curl/curl.h>
 
 class ofxSerpAPI {
 public:
@@ -37,13 +37,26 @@ public:
 
 	static string getErrorMessage(ErrorCode errorCode);
 
-	string sResult;
+	string sResponse;
+	ofJson jResponse;
 
 	// Curl approach
-	std::string sResponseCurl;
+	string sResponseCurl;
 	static size_t WriteCallback(char* contents, size_t size, size_t nmemb, std::string* response);
 	void doCurl(const std::string& query, const std::string& engine);
 
 	ofParameterGroup params{ "ofxSerpAPI" };
 	ofParameter<string> sKey{ "Key", "SET-YOUR-SERP-API-KEY-HERE-OR-IN-JSON-FILE"};
+	ofParameter<string> sEngine = { "Engine","youtube" };
+
+	bool bDoneCurl = false;
+public:
+	bool isCurlDone() {
+		if (bDoneCurl)
+		{
+			bDoneCurl = 0;
+			return true;
+		}
+		return false;
+	}
 };
