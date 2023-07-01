@@ -2,7 +2,7 @@
 
 A **WIP** openFrameworks addon to search/scrap response using the [SERP API](https://serpapi.com/).
 
-[](Capture.PNG)
+![](Capture.PNG)
 
 ## Features:
 - Currently using the `https://serpapi.com/youtube-search-api`.
