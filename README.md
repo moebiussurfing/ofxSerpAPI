@@ -1,6 +1,6 @@
 # ofxSerpAPI
 
-A **WIP** openFrameworks addon for searching using the [SERP API](https://serpapi.com/).
+A **WIP** openFrameworks addon for search/scrap using the [SERP API](https://serpapi.com/).
 
 ## Features:
 - https://serpapi.com/youtube-search-api
