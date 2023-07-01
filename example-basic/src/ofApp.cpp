@@ -16,20 +16,20 @@ void ofApp::setup() {
 
 void ofApp::update() {
 
-	// title to debuh that threading is working
+	// title to debug that threading is working
 	const int d = 120;
 	if (ofGetFrameNum() % d < (d / 0.5)) {
 		ofSetWindowTitle("ofxSerpAPI");
 	}
 	else ofSetWindowTitle("         ");
 
-	//TODO: force settings
 	if (ofGetFrameNum() == 2) {
-		//ui.notifier.setDuration(1000);
+		ui.notifier.setDuration(1000);
 		ui.notifier.setMini();
 	}
 
-	//TODO: make callback
+	//TODO: 
+	// Make callback
 	// Curl
 	if (searchAPI.isCurlDone()) {
 		jResponse = searchAPI.jResponse;
@@ -104,37 +104,33 @@ void ofApp::drawUI() {
 		ui.EndWindow();
 	}
 
-	if (videos.size() > 0) {
+	if (videos.size() > 0)
+	{
 		IMGUI_SUGAR__WINDOWS_CONSTRAINTS_DEFAULT;
-		if (ui.BeginWindow("VIDEOS")) {
-
+		if (ui.BeginWindow("VIDEOS"))
+		{
 			for (size_t i = 0; i < videos.size(); i++)
 			{
 				string s = videos[i].name;
+				s += "\n";
+				s += videos[i].url;
 
 				float w, h;
-				w = ui.getWidgetsWidth();
+				w = 200;
 				h = ui.getWidgetsHeightUnit() * 4;
 				ImVec2 sz{ w, h };
 
-				//if (ui.AddButton(s.c_str(), sz))
-				//{
-				//	ofLaunchBrowser(videos[i].url);
-				//}
-
-				//////ofTexture tex = videos[i].img.getTexture();
-				////if (ImGui::ImageButton(videos[i].imgID, ImVec2{ w, h })) 
-				//ImTextureID texID = ofxImGuiSurfing::GetImTextureID2(videos[i].imgID);
-				//if (ImGui::ImageButton(texID, ImVec2(w, h)))
-				//{
-				//	ofLaunchBrowser(videos[i].url);
-				//}
-
-				if (ImGui::ImageButton(ofxImGuiSurfing::GetImTextureID2(videos[i].texID), sz))
+				if (videos[i].tex.isAllocated())
 				{
-					ofLaunchBrowser(videos[i].url);
+					if (ImGui::ImageButton(ofxImGuiSurfing::GetImTextureID2(videos[i].texID), sz))
+					{
+						ofLaunchBrowser(videos[i].url);
+					}
+
+					ui.PushFontStyle(OFX_IM_FONT_BIG);
+					ui.AddTooltipBlink(s);
+					ui.PopFontStyle();
 				}
-				ui.AddTooltip(s);
 			}
 
 			ui.EndWindow();
@@ -149,6 +145,7 @@ void ofApp::doClear()
 	sResponse = "";
 	AddToLog(__FUNCTION__, OF_LOG_WARNING);
 	ui.ClearLog();
+	videos.clear();
 }
 
 // Send query
@@ -162,6 +159,8 @@ void ofApp::doSearchHTTP(const std::string& query, const std::string& engine)
 		string ss = "doSearchHTTP Result: " + sResponse;
 		ofLogNotice() << ss;
 		ui.AddToLog(ss, OF_LOG_WARNING);
+
+		videos.clear();
 		});
 }
 
@@ -222,17 +221,12 @@ void ofApp::doParse() {
 			v.name = videoTitle;
 			v.url = videoLink;
 			v.thumb = thumbnailLink;
-
 			ofHttpResponse r = ofLoadURL(thumbnailLink);
 			if (r.status == 200) {
-				v.img.loadImage(r.data);
-				v.imgID = ui.getGuiPtr()->loadImage(v.img);
 				v.texID = ui.getGuiPtr()->loadTexture(v.tex, v.thumb);
 
 			}
-
 			videos.emplace_back(v);
-			//videos.push_back(v);
 
 			//--
 

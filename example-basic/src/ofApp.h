@@ -3,6 +3,9 @@
 
 /*
 
+TODO:
+move images to class
+
 https://serpapi.com/
 https://serpapi.com/youtube-search-api
 
@@ -50,9 +53,7 @@ public:
 		string name;
 		string url;
 		string thumb;
-		ofImage img;
 		ofTexture tex;
-		GLuint imgID;
 		GLuint texID;
 	};
 	vector<dataVideo> videos;
