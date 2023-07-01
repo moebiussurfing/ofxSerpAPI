@@ -2,6 +2,8 @@
 
 A **WIP** openFrameworks addon to search/scrap response using the [SERP API](https://serpapi.com/).
 
+[](Capture.PNG)
+
 ## Features:
 - Currently using the `https://serpapi.com/youtube-search-api`.
 - To make a YouTube query search and process results.
