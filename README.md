@@ -1,17 +1,18 @@
 # ofxSerpAPI
 
-A **WIP** openFrameworks addon for search/scrap using the [SERP API](https://serpapi.com/).
+A **WIP** openFrameworks addon to search/scrap response using the [SERP API](https://serpapi.com/).
 
 ## Features:
-- https://serpapi.com/youtube-search-api
-- Do a (for example) Youtube query search.
-- Get the response as listed videos with their info: title, channel or the URL.
+- Currently using the `https://serpapi.com/youtube-search-api`.
+- To make a YouTube query search and process results.
+- Gets the response as listed videos with their info and creates clickable thumbs.
 
 ## HOW TO
-- Fill query text.
+- Fill query text as a YouTube search.
 - Hit **doHTTP** button.
 - Hit **doParse** button.
 - Enable the **Log** to see the video list.
+- Click the vide thumbs to open a video your internet browser.
 
 ## Requirements
 Register a free account for [SERP](https://serpapi.com).  
