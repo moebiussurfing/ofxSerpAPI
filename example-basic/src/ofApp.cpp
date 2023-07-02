@@ -117,7 +117,7 @@ void ofApp::drawUI() {
 
 				float w, h;
 				w = 200;
-				h = ui.getWidgetsHeightUnit() * 4;
+				h = w * (9/16.f);
 				ImVec2 sz{ w, h };
 
 				if (videos[i].tex.isAllocated())
@@ -210,7 +210,7 @@ void ofApp::doParse() {
 			ss << "VIDEO #" << i++ << endl;
 			ss << "Title: \t" << videoTitle << std::endl;
 			ss << "Link:  \t" << videoLink << std::endl;
-			ss << "Thumb:  \t" << thumbnailLink << std::endl;
+			ss << "Thumb: \t" << thumbnailLink << std::endl;
 			//ss << "Channel Name: " << channelName << std::endl;
 			//ss << "Channel Link: " << channelLink << std::endl;
 			//ss << endl;
