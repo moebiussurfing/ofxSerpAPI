@@ -56,6 +56,9 @@ void ofApp::drawUI() {
 	e.drawImGui();
 #endif
 
+	//static bool p_open = 0;
+	//if (p_open) IMGUI_SUGAR__WINDOWS_CONSTRAINTS_DEFAULT;
+	//if (ui.BeginWindow("ofApp", &p_open, ImGuiWindowFlags_None))
 	IMGUI_SUGAR__WINDOWS_CONSTRAINTS_DEFAULT;
 	if (ui.BeginWindow("ofApp", ImGuiWindowFlags_None))
 	{
@@ -63,6 +66,7 @@ void ofApp::drawUI() {
 		ui.AddLogToggle();
 		ui.AddNotifierToggle();
 		ui.AddAutoResizeToggle();
+
 		ui.AddSpacingBigSeparated();
 
 		ui.AddLabelBig("QUERY");
@@ -77,6 +81,7 @@ void ofApp::drawUI() {
 		if (ImGui::Button("Clear")) {
 			doClear();
 		}
+
 		ui.AddSpacingBigSeparated();
 
 		ui.AddLabelBig("SEARCH");
@@ -101,8 +106,8 @@ void ofApp::drawUI() {
 
 		ui.AddLabel(sResponse);
 
-		ui.EndWindow();
 	}
+	ui.EndWindow();
 
 	if (videos.size() > 0)
 	{
@@ -117,7 +122,7 @@ void ofApp::drawUI() {
 
 				float w, h;
 				w = 200;
-				h = w * (9/16.f);
+				h = w * (9 / 16.f);
 				ImVec2 sz{ w, h };
 
 				if (videos[i].tex.isAllocated())
